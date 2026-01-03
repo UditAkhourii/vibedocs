@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Users, FileText, Settings, LogOut, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, Users, FileText, Settings, LogOut, ShieldAlert, Megaphone } from "lucide-react";
 
 export default async function AdminLayout({
     children,
@@ -54,6 +54,10 @@ export default async function AdminLayout({
                     <Link href="/admin-zone/docs" className="flex items-center gap-3 px-3 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors">
                         <FileText size={18} />
                         <span>Documents</span>
+                    </Link>
+                    <Link href="/admin-zone/broadcast" className="flex items-center gap-3 px-3 py-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/5 transition-colors">
+                        <Megaphone size={18} />
+                        <span>Broadcast</span>
                     </Link>
                 </nav>
 

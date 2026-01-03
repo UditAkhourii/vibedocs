@@ -117,3 +117,33 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: error.message || 'Failed to publish' }, { status: 500 });
     }
 }
+
+// Background Processor for "Published" Email (Fire and Forget)
+async function sendPublishedNotification(userId: string, mainSlug: string) {
+    try {
+        const user = await db.user.findUnique({ where: { id: userId } });
+        if (!user || !user.email) return;
+
+        // Optional: Check if we just emailed them recently to avoid spam? 
+        // For "Published", we probably always want to send it, OR only for the FIRST publish?
+        // Let's send for every publish for now as requested, or maybe throttle?
+        // User asked: "If user published a doc.." -> usually implies success confirmation.
+
+        const { sendEmail } = await import('@/lib/email');
+        const { PublishedEmail } = await import('@/lib/email/templates/PublishedEmail');
+
+        await sendEmail({
+            to: user.email,
+            subject: 'Your documentation is live! 🎉',
+            react: PublishedEmail({ docUrl: `https://superdocs.dev/p/${mainSlug}` })
+        });
+
+        await db.user.update({
+            where: { id: userId },
+            data: { lastEmailedAt: new Date() }
+        });
+
+    } catch (e) {
+        console.error('Failed to send published email:', e);
+    }
+}

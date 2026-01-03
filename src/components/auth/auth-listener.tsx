@@ -29,9 +29,18 @@ export function AuthListener() {
         }
 
         // Listen for auth changes (cross-tab sync)
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             console.log("Auth Event:", event);
             if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
+                // Trigger welcome email sequence for new users (idempotent on server)
+                if (event === 'SIGNED_IN' && session?.user) {
+                    try {
+                        fetch('/api/auth/welcome', { method: 'POST' });
+                    } catch (e) {
+                        console.error("Failed to trigger welcome email", e);
+                    }
+                }
+
                 // If the user was just verified or signed in in another tab
                 // refresh the current page to update all RSCs and states
                 router.refresh();

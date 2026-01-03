@@ -17,6 +17,11 @@ model User {
   role      String   @default("user") // "user" | "admin"
   documents Document[]
   apiKeys   ApiKey[]
+  
+  // Email Automation
+  welcomeEmailSent Boolean   @default(false)
+  lastEmailedAt    DateTime?
+  nudgeCount       Int       @default(0)
 }
 
 model ApiKey {
