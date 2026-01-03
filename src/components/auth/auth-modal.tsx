@@ -1,7 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Mail, Lock } from "lucide-react";
@@ -21,6 +21,12 @@ export function AuthModal({ isOpen, onClose, defaultView = "signin" }: AuthModal
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+
+    // Sync internal state with prop when modal opens/prop changes
+    useEffect(() => {
+        setIsSignUp(defaultView === "signup");
+        setMessage(null); // Clear previous messages on view flip
+    }, [defaultView, isOpen]);
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();

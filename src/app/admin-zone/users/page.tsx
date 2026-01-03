@@ -5,6 +5,8 @@ import Link from "next/link";
 
 export const dynamic = 'force-dynamic';
 
+import { SyncUsersButton } from "@/components/admin/SyncUsersButton";
+
 export default async function AdminUsersPage() {
     const users = await db.user.findMany({
         orderBy: { createdAt: 'desc' },
@@ -17,9 +19,12 @@ export default async function AdminUsersPage() {
 
     return (
         <div className="space-y-8 text-white">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Users</h1>
-                <p className="text-zinc-400">Manage platform users.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+                    <p className="text-zinc-400">Manage platform users.</p>
+                </div>
+                <SyncUsersButton />
             </div>
 
             <div className="rounded-2xl border border-white/5 overflow-hidden">
