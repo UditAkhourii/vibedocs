@@ -39,8 +39,8 @@ export async function POST(request: Request) {
         console.log(`Starting broadcast '${subject}' to ${allUsers.length} users...`);
 
         let sentCount = 0;
-        let diffCount = 0;
         const failedEmails: string[] = [];
+        const successfulUserIds: string[] = [];
 
         // 4. Send Emails (Sequential to be safe with SMTP limits)
         for (const user of allUsers) {
@@ -54,14 +54,22 @@ export async function POST(request: Request) {
 
             if (result.success) {
                 sentCount++;
-                // Update lastEmailedAt
-                await db.user.update({
-                    where: { id: user.id },
-                    data: { lastEmailedAt: new Date() }
-                });
+                successfulUserIds.push(user.id);
             } else {
                 failedEmails.push(user.email);
             }
+
+            // Small delay to prevent SMTP rate limiting
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        // Batch update all successful sends
+        if (successfulUserIds.length > 0) {
+            await db.$executeRaw`
+                UPDATE "User" 
+                SET "lastEmailedAt" = NOW() 
+                WHERE id = ANY(${successfulUserIds}::uuid[])
+            `;
         }
 
         return NextResponse.json({

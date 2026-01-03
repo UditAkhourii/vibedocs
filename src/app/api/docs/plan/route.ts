@@ -122,7 +122,7 @@ export async function POST(request: Request) {
                     }
                 }
             } else {
-                console.log("Restoring fully generated docs from DB.");
+                // Restore from DB
             }
 
             return NextResponse.json({

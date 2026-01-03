@@ -52,9 +52,6 @@ export async function POST(req: Request) {
         const lastMessage = messages[messages.length - 1];
         const query = lastMessage.parts || lastMessage.content || ""; // Adjust based on frontend message format
 
-        console.log("Chat Debug - Query:", query);
-        console.log("Chat Debug - Messages Count:", messages.length);
-
         // 5. Stream Response
         // 5. Stream Response
         // Filter out initial model messages (like greetings) to satisfy Gemini API requirements
