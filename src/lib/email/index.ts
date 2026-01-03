@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
     secure: true, // true for 465, false for other ports
     auth: {
         user: "udit@superdocs.cloud",
-        pass: process.env.SMTP_PASSWORD || "Udit@0072026", // Fallback for dev/quickstart, but should use ENV
+        pass: process.env.SMTP_PASSWORD,
     },
 });
 
