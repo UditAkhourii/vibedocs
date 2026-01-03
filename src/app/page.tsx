@@ -128,25 +128,13 @@ export default function NewDocPage() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              {/* Desktop Button */}
               <Button
                 variant="ghost"
-                className="text-white/60 hover:text-white hover:bg-white/5 h-9 px-3 hidden sm:flex"
+                className="text-white/60 hover:text-white hover:bg-white/5 h-9 px-3"
                 onClick={() => window.open('https://cal.com/autorel-wq308x/15min', '_blank')}
               >
                 Book A Free Call
               </Button>
-              {/* Mobile Button (Icon Only) */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white/60 hover:text-white hover:bg-white/5 h-9 w-9 sm:hidden"
-                onClick={() => window.open('https://cal.com/autorel-wq308x/15min', '_blank')}
-              >
-                <span className="sr-only">Book call</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-phone"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
-              </Button>
-
               <Button
                 variant="outline"
                 className="border-white/10 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white h-9"
