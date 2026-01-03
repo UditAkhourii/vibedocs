@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner"; // Assuming sonner or use basic alert
 
 export function SyncUsersButton() {
     const [loading, setLoading] = useState(false);
