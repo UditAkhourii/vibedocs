@@ -28,13 +28,30 @@ export default function IntegrationsPage() {
     }, []);
 
     const handleConnectGithub = async () => {
-        await supabase.auth.signInWithOAuth({
-            provider: 'github',
-            options: {
-                redirectTo: `${window.location.origin}/integrations`,
-                scopes: 'repo',
-            },
-        });
+        try {
+            if (user) {
+                const { error } = await supabase.auth.linkIdentity({
+                    provider: 'github',
+                    options: {
+                        redirectTo: `${window.location.origin}/integrations`,
+                        scopes: 'repo',
+                    },
+                });
+                if (error) throw error;
+            } else {
+                const { error } = await supabase.auth.signInWithOAuth({
+                    provider: 'github',
+                    options: {
+                        redirectTo: `${window.location.origin}/integrations`,
+                        scopes: 'repo',
+                    },
+                });
+                if (error) throw error;
+            }
+        } catch (error) {
+            console.error("Error connecting GitHub:", error);
+            // Optionally set error state here if UI has error display
+        }
     };
 
     return (

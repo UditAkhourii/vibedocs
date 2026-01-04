@@ -126,22 +126,29 @@ export default function NewDocPage() {
   };
 
   const handleConnectGithub = async () => {
-    if (user) {
-      await supabase.auth.linkIdentity({
-        provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}/`,
-          scopes: 'repo',
-        },
-      });
-    } else {
-      await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}/`,
-          scopes: 'repo',
-        },
-      });
+    try {
+      if (user) {
+        const { error } = await supabase.auth.linkIdentity({
+          provider: 'github',
+          options: {
+            redirectTo: `${window.location.origin}/`,
+            scopes: 'repo',
+          },
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'github',
+          options: {
+            redirectTo: `${window.location.origin}/`,
+            scopes: 'repo',
+          },
+        });
+        if (error) throw error;
+      }
+    } catch (err: any) {
+      console.error("GitHub connection error:", err);
+      setError(err.message || "Failed to connect GitHub");
     }
   };
 
