@@ -59,14 +59,18 @@ export async function GET(request: Request) {
 
     // 3. Save to DB
     try {
-        await db.user.update({
+        // Ensure user exists (Upsert)
+        await db.user.upsert({
             where: { authId: user.id },
-            data: { githubAccessToken: accessToken }
+            update: { githubAccessToken: accessToken },
+            create: {
+                authId: user.id,
+                email: user.email!, // Email is required for checking
+                githubAccessToken: accessToken
+            }
         });
     } catch (err) {
         console.error("Failed to save token to DB", err);
-        // It's possible the user record doesn't exist yet if they just signed up and didn't trigger a DB sync?
-        // But they should have.
         return NextResponse.redirect(`${origin}${nextUrl}?error=db_update_failed`);
     }
 
