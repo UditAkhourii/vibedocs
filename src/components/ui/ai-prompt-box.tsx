@@ -281,18 +281,13 @@ function usePromptInput() {
     return context;
 }
 
-interface PromptInputProps {
+interface PromptInputProps extends React.HTMLAttributes<HTMLDivElement> {
     isLoading?: boolean;
     value?: string;
     onValueChange?: (value: string) => void;
     maxHeight?: number | string;
     onSubmit?: () => void;
-    children: React.ReactNode;
-    className?: string;
     disabled?: boolean;
-    onDragOver?: (e: React.DragEvent) => void;
-    onDragLeave?: (e: React.DragEvent) => void;
-    onDrop?: (e: React.DragEvent) => void;
 }
 const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
     (
@@ -305,9 +300,7 @@ const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
             onSubmit,
             children,
             disabled = false,
-            onDragOver,
-            onDragLeave,
-            onDrop,
+            ...props
         },
         ref
     ) => {
@@ -335,9 +328,7 @@ const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
                             // isLoading and "border-red-500/70", // Handled by parent now
                             className
                         )}
-                        onDragOver={onDragOver}
-                        onDragLeave={onDragLeave}
-                        onDrop={onDrop}
+                        {...props}
                     >
                         {children}
                     </div>
@@ -444,10 +435,20 @@ interface PromptInputBoxProps {
     isLoading?: boolean;
     placeholder?: string;
     className?: string;
+    value?: string;
+    disabled?: boolean;
+    onClick?: () => void;
 }
 export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref: React.Ref<HTMLDivElement>) => {
-    const { onSend = () => { }, isLoading = false, placeholder = "Type your message here...", className } = props;
-    const [input, setInput] = React.useState("");
+    const { onSend = () => { }, isLoading = false, placeholder = "Type your message here...", className, value: controlledValue, disabled = false, onClick } = props;
+    const [internalInput, setInternalInput] = React.useState("");
+
+    // Derived state for input value
+    const input = controlledValue !== undefined ? controlledValue : internalInput;
+    const setInput = (newValue: string) => {
+        setInternalInput(newValue);
+    };
+
     const [files, setFiles] = React.useState<File[]>([]);
     const [filePreviews, setFilePreviews] = React.useState<{ [key: string]: string }>({});
     const [selectedImage, setSelectedImage] = React.useState<string | null>(null);
@@ -570,11 +571,12 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                     isLoading && "border-indigo-500/70 shadow-[0_0_15px_rgba(99,102,241,0.2)]",
                     className
                 )}
-                disabled={isLoading || isRecording}
+                disabled={isLoading || isRecording || disabled}
                 ref={ref || promptBoxRef}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
+                onClick={onClick}
             >
                 {files.length > 0 && !isRecording && (
                     <div className="flex flex-wrap gap-2 p-0 pb-1 transition-all duration-300">

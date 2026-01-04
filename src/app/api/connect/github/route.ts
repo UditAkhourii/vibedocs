@@ -1,17 +1,38 @@
 import { NextResponse } from 'next/server';
 import { GitHubConnector } from '@/lib/connectors/github';
 
+import { createClient } from '@/lib/supabase/server';
+import { db } from '@/lib/db';
+
 export async function POST(request: Request) {
     try {
-        const { repoUrl } = await request.json();
+        const { repoUrl, isPrivate } = await request.json();
 
         if (!repoUrl) {
             return NextResponse.json({ error: 'Repo URL is required' }, { status: 400 });
         }
 
+        let token: string | undefined = undefined;
+
+        if (isPrivate) {
+            const supabase = await createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (!user) {
+                return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+            }
+
+            const dbUser = await db.user.findUnique({ where: { authId: user.id } });
+            if (dbUser?.githubAccessToken) {
+                token = dbUser.githubAccessToken;
+            } else {
+                return NextResponse.json({ error: 'Please connect GitHub account first' }, { status: 403 });
+            }
+        }
+
         const connector = new GitHubConnector();
         // In a real scenario, we might want to handle private repos with a token from the request
-        const metadata = await connector.connect({ repoUrl });
+        const metadata = await connector.connect({ repoUrl, token });
 
         // Scan the repository to get file structure
         const tree = await connector.scan();

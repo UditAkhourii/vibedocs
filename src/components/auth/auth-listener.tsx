@@ -10,8 +10,18 @@ export function AuthListener() {
     const pathname = usePathname();
 
     useEffect(() => {
-        // Handle confetti on verification
         const params = new URLSearchParams(window.location.search);
+        const code = params.get('code');
+
+        // If we have an auth code but aren't on the callback route (which is an API route anyway),
+        // it means we landed on a page with the code. Redirect to the server-side callback handler.
+        if (code) {
+            const next = params.get('next') || window.location.pathname;
+            window.location.href = `/auth/callback?code=${code}&next=${next}`;
+            return;
+        }
+
+        // Handle confetti on verification
         if (params.get('verified') === 'true') {
             import('canvas-confetti').then((confetti) => {
                 confetti.default({
@@ -34,6 +44,20 @@ export function AuthListener() {
             if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
                 // Trigger welcome email sequence for new users (idempotent on server)
                 if (event === 'SIGNED_IN' && session?.user) {
+
+                    // Save provider token if available (e.g. from GitHub login)
+                    if (session.provider_token) {
+                        try {
+                            fetch('/api/user/token', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ token: session.provider_token })
+                            });
+                        } catch (e) {
+                            console.error("Failed to save provider token", e);
+                        }
+                    }
+
                     try {
                         fetch('/api/auth/welcome', { method: 'POST' });
                     } catch (e) {

@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { Loader2, Mail, Lock, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AuthModalProps {
@@ -74,6 +74,23 @@ export function AuthModal({ isOpen, onClose, defaultView = "signin" }: AuthModal
         }
     };
 
+    const handleGithubLogin = async () => {
+        setLoading(true);
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'github',
+                options: {
+                    redirectTo: `${location.origin}/auth/callback`,
+                    scopes: 'repo',
+                },
+            });
+            if (error) throw error;
+        } catch (error: any) {
+            setMessage({ type: "error", text: error.message });
+            setLoading(false);
+        }
+    };
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-md bg-zinc-900 border-white/10 text-white">
@@ -83,6 +100,29 @@ export function AuthModal({ isOpen, onClose, defaultView = "signin" }: AuthModal
                     </DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col gap-4 py-4">
+                    {!isResetMode && (
+                        <>
+                            <Button
+                                variant="outline"
+                                onClick={handleGithubLogin}
+                                disabled={loading}
+                                className="w-full bg-white text-black hover:bg-zinc-200 border-white/10"
+                            >
+                                {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Github className="mr-2 h-4 w-4" />}
+                                Continue with GitHub
+                            </Button>
+
+                            <div className="relative">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t border-white/10" />
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-zinc-900 px-2 text-zinc-400">Or continue with</span>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
                     <form onSubmit={handleAuth} className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-zinc-400">

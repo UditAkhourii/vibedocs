@@ -4,7 +4,8 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Github, CheckCircle2, AlertCircle, Sparkles, LogOut, User as UserIcon, Play, Terminal, ArrowRight, Phone } from "lucide-react";
+import { Github, CheckCircle2, AlertCircle, Sparkles, LogOut, User as UserIcon, Play, Terminal, ArrowRight, Phone, Lock, GitBranch, Loader2, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { motion, AnimatePresence } from "framer-motion";
 import { PromptInputBox } from "@/components/ui/ai-prompt-box";
 import { InteractiveGrid } from "@/components/ui/interactive-grid";
@@ -26,6 +27,14 @@ export default function NewDocPage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authView, setAuthView] = useState<'signin' | 'signup'>('signin');
   const [activeVideo, setActiveVideo] = useState<'demo' | 'cli' | null>(null);
+
+  // Repo Selection State
+  const [repoSource, setRepoSource] = useState<'public' | 'private'>('public');
+  const [userRepos, setUserRepos] = useState<any[]>([]);
+  const [repoModalOpen, setRepoModalOpen] = useState(false);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  const [repoSearch, setRepoSearch] = useState("");
+  const [githubConnected, setGithubConnected] = useState(false);
 
   const supabase = createClient();
 
@@ -75,7 +84,7 @@ export default function NewDocPage() {
       const res = await fetch('/api/connect/github', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ repoUrl: finalUrl })
+        body: JSON.stringify({ repoUrl: finalUrl, isPrivate: repoSource === 'private' })
       });
 
       const data = await res.json();
@@ -89,6 +98,47 @@ export default function NewDocPage() {
     }
   };
 
+  const handleSourceToggle = async (source: 'public' | 'private') => {
+    setRepoSource(source);
+    if (source === 'private') {
+      if (!user) {
+        setAuthView('signin');
+        setIsAuthModalOpen(true);
+        return;
+      }
+      await fetchRepos();
+      setRepoModalOpen(true);
+    }
+  };
+
+  const fetchRepos = async () => {
+    setLoadingRepos(true);
+    try {
+      const res = await fetch('/api/github/repos');
+      const data = await res.json();
+      setGithubConnected(data.connected);
+      setUserRepos(data.repos || []);
+    } catch (error) {
+      console.error("Failed to fetch repos", error);
+    } finally {
+      setLoadingRepos(false);
+    }
+  };
+
+  const handleConnectGithub = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: `${window.location.origin}/`,
+        scopes: 'repo',
+      },
+    });
+  };
+
+  const filteredRepos = userRepos.filter(repo =>
+    repo.name.toLowerCase().includes(repoSearch.toLowerCase())
+  );
+
   return (
     <div className="relative flex min-h-screen flex-col bg-[#0A0A0B] overflow-x-hidden selection:bg-indigo-500/30">
       <AuthModal
@@ -96,6 +146,71 @@ export default function NewDocPage() {
         onClose={() => setIsAuthModalOpen(false)}
         defaultView={authView}
       />
+
+      <Dialog open={repoModalOpen} onOpenChange={setRepoModalOpen}>
+        <DialogContent className="max-w-2xl bg-[#141416] border-white/10 text-white max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Select Repository</DialogTitle>
+          </DialogHeader>
+
+          {!githubConnected && !loadingRepos ? (
+            <div className="flex flex-col items-center justify-center p-8 space-y-4">
+              <Github className="w-12 h-12 text-zinc-500" />
+              <p className="text-zinc-400 text-center">Connect GitHub to access your private repositories.</p>
+              <Button onClick={handleConnectGithub} className="bg-white text-black hover:bg-white/90">
+                Connect GitHub
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4 flex-1 overflow-hidden">
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-zinc-500" />
+                <input
+                  className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500/50"
+                  placeholder="Search repositories..."
+                  value={repoSearch}
+                  onChange={(e) => setRepoSearch(e.target.value)}
+                />
+              </div>
+
+              {loadingRepos ? (
+                <div className="flex items-center justify-center p-8">
+                  <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                  {filteredRepos.map(repo => (
+                    <button
+                      key={repo.id}
+                      onClick={() => {
+                        handleSubmitGithub(repo.url);
+                        setRepoModalOpen(false);
+                      }}
+                      className="w-full text-left p-3 rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10 transition-all group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          {repo.private ? <Lock className="w-3 h-3 text-amber-400" /> : <Github className="w-3 h-3 text-zinc-400" />}
+                          <span className="font-medium text-sm group-hover:text-indigo-400 transition-colors">{repo.name}</span>
+                        </div>
+                        <span className="text-[10px] text-zinc-600">
+                          {new Date(repo.updatedAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {repo.description && (
+                        <p className="text-xs text-zinc-500 mt-1 truncate">{repo.description}</p>
+                      )}
+                    </button>
+                  ))}
+                  {filteredRepos.length === 0 && (
+                    <p className="text-center text-zinc-500 py-8 text-sm">No repositories found.</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Header Buttons */}
       <div className="absolute top-6 right-6 z-50 flex items-center gap-2 group-has-[[data-sidebar=open]]:pr-4">
@@ -193,13 +308,37 @@ export default function NewDocPage() {
                   <PromptInputBox
                     onSend={(message) => handleSubmitGithub(message)}
                     isLoading={isConnecting}
-                    placeholder="Paste repository URL (e.g. facebook/react)"
+                    placeholder={repoSource === 'private' ? "Select a private repository..." : "Paste public repository URL (e.g. facebook/react)"}
+                    disabled={repoSource === 'private'} // Disable manual input for private mode, force selection
+                    value={repoSource === 'private' ? "Click to select repository..." : undefined}
+                    onClick={() => {
+                      if (repoSource === 'private') {
+                        if (!user) {
+                          setAuthView('signin');
+                          setIsAuthModalOpen(true);
+                        } else {
+                          if (userRepos.length === 0) fetchRepos();
+                          setRepoModalOpen(true);
+                        }
+                      }
+                    }}
                   />
-                  <div className="mt-4 flex items-center justify-center gap-6 opacity-30">
-                    <div className="flex items-center gap-2 text-xs font-light text-white">
+                  <div className="mt-4 flex items-center justify-center gap-6">
+                    <button
+                      onClick={() => handleSourceToggle('public')}
+                      className={`flex items-center gap-2 text-xs font-light transition-colors ${repoSource === 'public' ? 'text-white' : 'text-white/30 hover:text-white/60'}`}
+                    >
                       <Github className="w-3 h-3" />
                       <span>Public Repos</span>
-                    </div>
+                    </button>
+                    <div className="w-px h-3 bg-white/10" />
+                    <button
+                      onClick={() => handleSourceToggle('private')}
+                      className={`flex items-center gap-2 text-xs font-light transition-colors ${repoSource === 'private' ? 'text-white' : 'text-white/30 hover:text-white/60'}`}
+                    >
+                      <Lock className="w-3 h-3" />
+                      <span>Private Repos</span>
+                    </button>
                   </div>
                 </motion.div>
               ) : (
