@@ -128,15 +128,10 @@ export default function NewDocPage() {
   const handleConnectGithub = async () => {
     try {
       if (user) {
-        const { error } = await supabase.auth.linkIdentity({
-          provider: 'github',
-          options: {
-            redirectTo: `${window.location.origin}/`,
-            scopes: 'repo',
-          },
-        });
-        if (error) throw error;
+        // Use custom integration flow for manual linking
+        window.location.href = '/api/auth/github/connect?next=/';
       } else {
+        // Use Supabase Auth for fresh login
         const { error } = await supabase.auth.signInWithOAuth({
           provider: 'github',
           options: {

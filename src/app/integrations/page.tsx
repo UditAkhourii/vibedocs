@@ -17,10 +17,17 @@ export default function IntegrationsPage() {
             setUser(user);
 
             if (user) {
-                // Check if github is in identities
-                const isConnected = user.app_metadata.provider === 'github' ||
-                    user.identities?.some(id => id.provider === 'github');
-                setIsGithubConnected(!!isConnected);
+                // Check API for actual connection status (Supabase identities OR Custom DB Token)
+                try {
+                    const res = await fetch('/api/github/repos'); // This endpoint returns { connected: boolean }
+                    const data = await res.json();
+                    setIsGithubConnected(data.connected);
+                } catch (e) {
+                    // Fallback to basic identity check if API fails
+                    const isConnected = user.app_metadata.provider === 'github' ||
+                        user.identities?.some(id => id.provider === 'github');
+                    setIsGithubConnected(!!isConnected);
+                }
             }
             setLoading(false);
         }
@@ -30,14 +37,8 @@ export default function IntegrationsPage() {
     const handleConnectGithub = async () => {
         try {
             if (user) {
-                const { error } = await supabase.auth.linkIdentity({
-                    provider: 'github',
-                    options: {
-                        redirectTo: `${window.location.origin}/integrations`,
-                        scopes: 'repo',
-                    },
-                });
-                if (error) throw error;
+                // Use custom integration flow
+                window.location.href = '/api/auth/github/connect?next=/integrations';
             } else {
                 const { error } = await supabase.auth.signInWithOAuth({
                     provider: 'github',
@@ -50,7 +51,6 @@ export default function IntegrationsPage() {
             }
         } catch (error) {
             console.error("Error connecting GitHub:", error);
-            // Optionally set error state here if UI has error display
         }
     };
 
