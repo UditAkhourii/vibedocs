@@ -309,8 +309,10 @@ export default function NewDocPage() {
                     onSend={(message) => handleSubmitGithub(message)}
                     isLoading={isConnecting}
                     placeholder={repoSource === 'private' ? "Select a private repository..." : "Paste public repository URL (e.g. facebook/react)"}
-                    disabled={repoSource === 'private'} // Disable manual input for private mode, force selection
+                    disabled={repoSource === 'private'}
                     value={repoSource === 'private' ? "Click to select repository..." : undefined}
+                    repoMode={repoSource}
+                    onRepoModeChange={handleSourceToggle}
                     onClick={() => {
                       if (repoSource === 'private') {
                         if (!user) {
@@ -323,23 +325,6 @@ export default function NewDocPage() {
                       }
                     }}
                   />
-                  <div className="mt-4 flex items-center justify-center gap-6">
-                    <button
-                      onClick={() => handleSourceToggle('public')}
-                      className={`flex items-center gap-2 text-xs font-light transition-colors ${repoSource === 'public' ? 'text-white' : 'text-white/30 hover:text-white/60'}`}
-                    >
-                      <Github className="w-3 h-3" />
-                      <span>Public Repos</span>
-                    </button>
-                    <div className="w-px h-3 bg-white/10" />
-                    <button
-                      onClick={() => handleSourceToggle('private')}
-                      className={`flex items-center gap-2 text-xs font-light transition-colors ${repoSource === 'private' ? 'text-white' : 'text-white/30 hover:text-white/60'}`}
-                    >
-                      <Lock className="w-3 h-3" />
-                      <span>Private Repos</span>
-                    </button>
-                  </div>
                 </motion.div>
               ) : (
                 <motion.div

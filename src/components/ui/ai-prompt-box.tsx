@@ -3,7 +3,7 @@
 import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode } from "lucide-react";
+import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode, Lock, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Utility function for className merging
@@ -438,9 +438,11 @@ interface PromptInputBoxProps {
     value?: string;
     disabled?: boolean;
     onClick?: () => void;
+    repoMode?: 'public' | 'private';
+    onRepoModeChange?: (mode: 'public' | 'private') => void;
 }
 export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref: React.Ref<HTMLDivElement>) => {
-    const { onSend = () => { }, isLoading = false, placeholder = "Type your message here...", className, value: controlledValue, disabled = false, onClick } = props;
+    const { onSend = () => { }, isLoading = false, placeholder = "Type your message here...", className, value: controlledValue, disabled = false, onClick, repoMode = 'public', onRepoModeChange } = props;
     const [internalInput, setInternalInput] = React.useState("");
 
     // Derived state for input value
@@ -456,8 +458,21 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
     const [showSearch, setShowSearch] = React.useState(false);
     const [showThink, setShowThink] = React.useState(false);
     const [showCanvas, setShowCanvas] = React.useState(false);
+    const [showRepoMenu, setShowRepoMenu] = React.useState(false);
     const uploadInputRef = React.useRef<HTMLInputElement>(null);
     const promptBoxRef = React.useRef<HTMLDivElement>(null);
+    const repoMenuRef = React.useRef<HTMLDivElement>(null);
+
+    // Close menu when clicking outside
+    React.useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (repoMenuRef.current && !repoMenuRef.current.contains(event.target as Node)) {
+                setShowRepoMenu(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const handleToggleChange = (value: string) => {
         if (value === "search") {
@@ -656,6 +671,69 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                                 />
                             </button>
                         </PromptInputAction>
+
+                        {/* Repo Mode Selector */}
+                        <div className="relative" ref={repoMenuRef}>
+                            <PromptInputAction tooltip="Select Repository Type">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowRepoMenu(!showRepoMenu);
+                                    }}
+                                    className="flex h-8 w-auto px-2 gap-1.5 text-[#9CA3AF] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-gray-600/30 hover:text-[#D1D5DB] text-xs font-medium"
+                                    disabled={disabled}
+                                >
+                                    {repoMode === 'private' ? (
+                                        <Lock className="h-4 w-4 text-amber-400" />
+                                    ) : (
+                                        <Globe className="h-4 w-4 text-blue-400" />
+                                    )}
+                                    <span className="hidden sm:inline">{repoMode === 'private' ? 'Private' : 'Public'}</span>
+                                    <ChevronDown className="h-3 w-3 opacity-70" />
+                                </button>
+                            </PromptInputAction>
+
+                            <AnimatePresence>
+                                {showRepoMenu && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        transition={{ duration: 0.15 }}
+                                        className="absolute bottom-full left-0 mb-2 w-48 overflow-hidden rounded-xl border border-[#444444] bg-[#1F2023] shadow-xl z-50 p-1"
+                                    >
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onRepoModeChange?.('public');
+                                                setShowRepoMenu(false);
+                                            }}
+                                            className={cn(
+                                                "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[#2E3033]",
+                                                repoMode === 'public' ? "text-white bg-[#2E3033]/50" : "text-gray-400"
+                                            )}
+                                        >
+                                            <Globe className="h-4 w-4 text-blue-400" />
+                                            <span>Public Repository</span>
+                                        </button>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onRepoModeChange?.('private');
+                                                setShowRepoMenu(false);
+                                            }}
+                                            className={cn(
+                                                "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-[#2E3033]",
+                                                repoMode === 'private' ? "text-white bg-[#2E3033]/50" : "text-gray-400"
+                                            )}
+                                        >
+                                            <Lock className="h-4 w-4 text-amber-400" />
+                                            <span>Private Repository</span>
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                     <PromptInputAction
                         tooltip={isLoading ? "Stop generation" : "Send message"}
@@ -679,8 +757,8 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                             )}
                         </Button>
                     </PromptInputAction>
-                </PromptInputActions>
-            </PromptInput>
+                </PromptInputActions >
+            </PromptInput >
 
             <ImageViewDialog imageUrl={selectedImage} onClose={() => setSelectedImage(null)} />
         </>
