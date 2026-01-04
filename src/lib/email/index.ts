@@ -7,7 +7,7 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true, // true for 465, false for other ports
     auth: {
-        user: "udit@superdocs.cloud",
+        user: process.env.SMTP_USER || "udit@superdocs.cloud",
         pass: process.env.SMTP_PASSWORD,
     },
 });
@@ -25,7 +25,7 @@ export async function sendEmail({
         const emailHtml = await render(react);
 
         const info = await transporter.sendMail({
-            from: '"Udit from SuperDocs" <udit@superdocs.cloud>', // sender address
+            from: `"Udit from SuperDocs" <${process.env.SMTP_USER || "udit@superdocs.cloud"}>`, // sender address
             to, // list of receivers
             subject, // Subject line
             html: emailHtml, // html body
