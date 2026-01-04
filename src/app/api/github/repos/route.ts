@@ -11,18 +11,28 @@ export async function GET() {
         const { data: { user } } = await supabase.auth.getUser();
 
         if (!user) {
+            console.log("Repos API: No user found in session");
             return new NextResponse("Unauthorized", { status: 401 });
         }
+
+        console.log("Repos API: Checking connection for user", user.id);
 
         // Get stored token
         const dbUser = await db.user.findUnique({
             where: { authId: user.id }
         });
 
-        if (!dbUser || !dbUser.githubAccessToken) {
-            return NextResponse.json({ repos: [], connected: false });
+        if (!dbUser) {
+            console.log("Repos API: No DB record for user", user.id);
+            return NextResponse.json({ repos: [], connected: false, reason: "no_db_record" });
         }
 
+        if (!dbUser.githubAccessToken) {
+            console.log("Repos API: No token found for user", user.id);
+            return NextResponse.json({ repos: [], connected: false, reason: "no_token" });
+        }
+
+        console.log("Repos API: Token found, fetching from GitHub...");
         const octokit = new Octokit({ auth: dbUser.githubAccessToken });
 
         // Fetch user repos (public and private due to 'repo' scope)
@@ -32,6 +42,8 @@ export async function GET() {
             per_page: 100,
             affiliation: 'owner,collaborator,organization_member'
         });
+
+        console.log(`Repos API: Successfully fetched ${repos.length} repos`);
 
         const formattedRepos = repos.map((repo: any) => ({
             id: repo.id,
@@ -45,11 +57,11 @@ export async function GET() {
         return NextResponse.json({ repos: formattedRepos, connected: true });
 
     } catch (error: any) {
-        console.error("Failed to fetch repos", error);
+        console.error("Failed to fetch repos:", error.message);
         if (error.status === 401) {
             // Token invalid or expired
-            return NextResponse.json({ repos: [], connected: false, error: "Token invalid" });
+            return NextResponse.json({ repos: [], connected: false, error: "Token invalid", detail: error.message });
         }
-        return new NextResponse("Internal Error", { status: 500 });
+        return NextResponse.json({ repos: [], connected: false, error: "Internal Error", detail: error.message }, { status: 500 });
     }
 }
