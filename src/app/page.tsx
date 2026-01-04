@@ -106,8 +106,8 @@ export default function NewDocPage() {
         setIsAuthModalOpen(true);
         return;
       }
-      await fetchRepos();
       setRepoModalOpen(true);
+      await fetchRepos();
     }
   };
 
