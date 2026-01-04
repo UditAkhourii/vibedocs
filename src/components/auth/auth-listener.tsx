@@ -43,10 +43,12 @@ export function AuthListener() {
             console.log("Auth Event:", event);
             if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
                 // Trigger welcome email sequence for new users (idempotent on server)
-                if (event === 'SIGNED_IN' && session?.user) {
+                // Save provider token ONLY if this is a GitHub login
+                // This prevents Google/Slack tokens from overwriting GitHub integration tokens
+                if (event === 'SIGNED_IN' && session?.user && session.provider_token) {
+                    const provider = session.user.app_metadata?.provider;
 
-                    // Save provider token if available (e.g. from GitHub login)
-                    if (session.provider_token) {
+                    if (provider === 'github') {
                         try {
                             fetch('/api/user/token', {
                                 method: 'POST',
