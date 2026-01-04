@@ -429,6 +429,25 @@ export default function NewDocPage() {
           </Button>
         </div>
       </VideoModal>
+
+      {/* Footer */}
+      <footer className="relative z-10 w-full pt-20 pb-12 px-6 border-t border-white/5 mt-20">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2">
+            <span className="text-white/40 text-[10px] uppercase tracking-[0.2em] font-medium">SuperDocs</span>
+            <span className="text-zinc-800">/</span>
+            <span className="text-zinc-600 text-[10px]">© 2026 Admin Zone</span>
+          </div>
+          <div className="flex items-center gap-8">
+            <Link href="/privacy" className="text-zinc-500 hover:text-white text-[10px] uppercase tracking-wider transition-colors">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="text-zinc-500 hover:text-white text-[10px] uppercase tracking-wider transition-colors">
+              Terms & Conditions
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
