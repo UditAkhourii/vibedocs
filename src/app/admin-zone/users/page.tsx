@@ -2,10 +2,10 @@
 import { db } from "@/lib/db";
 import { formatDistanceToNow } from "date-fns";
 import Link from "next/link";
+import { SyncUsersButton } from "@/components/admin/SyncUsersButton";
+import { UserActions } from "@/components/admin/UserActions";
 
 export const dynamic = 'force-dynamic';
-
-import { SyncUsersButton } from "@/components/admin/SyncUsersButton";
 
 export default async function AdminUsersPage() {
     const users = await db.user.findMany({
@@ -53,13 +53,14 @@ export default async function AdminUsersPage() {
                                 </td>
                                 <td className="px-6 py-4 text-zinc-400">{user._count.documents}</td>
                                 <td className="px-6 py-4 text-zinc-400">{formatDistanceToNow(new Date(user.createdAt))} ago</td>
-                                <td className="px-6 py-4">
+                                <td className="px-6 py-4 flex items-center gap-2">
                                     <Link
                                         href={`/admin-zone/users/${user.id}`}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-md text-white"
+                                        className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-md text-white transition-colors"
                                     >
                                         View
                                     </Link>
+                                    <UserActions userId={user.id} userEmail={user.email} />
                                 </td>
                             </tr>
                         ))}

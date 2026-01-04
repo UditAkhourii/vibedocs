@@ -12,13 +12,16 @@ export function VerificationBanner() {
     const [cooldown, setCooldown] = useState(0);
     const supabase = createClient();
 
+    // TEMPORARY: Force show banner for testing
+    const FORCE_SHOW_BANNER = true;
+
     useEffect(() => {
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             // Check if email is confirmed. 
             // Note: user.email_confirmed_at is set if confirmed.
             // If unconfirmed, we show the banner.
-            if (user && !user.email_confirmed_at) {
+            if (user && (!user.email_confirmed_at || FORCE_SHOW_BANNER)) {
                 setUser(user);
             } else {
                 setUser(null);
@@ -29,7 +32,7 @@ export function VerificationBanner() {
 
         // Listen for auth changes to hide banner if they verify in another tab or log out
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (session?.user && !session.user.email_confirmed_at) {
+            if (session?.user && (!session.user.email_confirmed_at || FORCE_SHOW_BANNER)) {
                 setUser(session.user);
             } else {
                 setUser(null);

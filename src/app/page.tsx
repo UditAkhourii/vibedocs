@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Github, CheckCircle2, AlertCircle, Sparkles, LogOut, User as UserIcon, Play, Terminal, ArrowRight } from "lucide-react";
+import { Github, CheckCircle2, AlertCircle, Sparkles, LogOut, User as UserIcon, Play, Terminal, ArrowRight, Phone } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PromptInputBox } from "@/components/ui/ai-prompt-box";
 import { InteractiveGrid } from "@/components/ui/interactive-grid";
@@ -118,6 +118,15 @@ export default function NewDocPage() {
           <span className="ml-2 bg-indigo-500/20 text-indigo-300 text-[10px] px-1.5 py-0.5 rounded-full border border-indigo-500/30">NEW</span>
         </Button>
 
+        <Button
+          variant="ghost"
+          className="text-white/60 hover:text-white hover:bg-white/5 h-9 px-3"
+          onClick={() => window.open('https://cal.com/autorel-wq308x/15min', '_blank')}
+        >
+          <Phone className="w-3.5 h-3.5 sm:mr-2" />
+          <span className="hidden sm:inline">Book A Free Call</span>
+        </Button>
+
         {!loadingUser && (
           user ? (
             <div className="flex items-center gap-4">
@@ -128,13 +137,6 @@ export default function NewDocPage() {
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                className="text-white/60 hover:text-white hover:bg-white/5 h-9 px-3"
-                onClick={() => window.open('https://cal.com/autorel-wq308x/15min', '_blank')}
-              >
-                Book A Free Call
-              </Button>
               <Button
                 variant="outline"
                 className="border-white/10 bg-white/5 text-white/80 hover:bg-white/10 hover:text-white h-9"

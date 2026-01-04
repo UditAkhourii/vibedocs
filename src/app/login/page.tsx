@@ -21,7 +21,7 @@ export default function LoginPage() {
 
         try {
             if (isSignUp) {
-                const { error } = await supabase.auth.signUp({
+                const { data, error } = await supabase.auth.signUp({
                     email,
                     password,
                     options: {
@@ -29,7 +29,9 @@ export default function LoginPage() {
                     },
                 });
                 if (error) throw error;
-                setMessage({ type: "success", text: "Check your email to confirm signing up!" });
+                // Redirect to home immediately
+                router.push("/");
+                router.refresh();
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
                     email,

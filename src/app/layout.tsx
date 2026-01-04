@@ -6,7 +6,6 @@ import { Suspense } from "react";
 import AppSidebar from "@/components/AppSidebar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import NextTopLoader from 'nextjs-toploader';
-import { VerificationBanner } from "@/components/auth/verification-banner";
 import { AuthListener } from "@/components/auth/auth-listener";
 import Script from "next/script";
 
@@ -76,7 +75,6 @@ export default function RootLayout({
         >
           <NextTopLoader color="#6366f1" showSpinner={false} />
           <AuthListener />
-          <VerificationBanner />
           <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-white">Loading...</div>}>
             <div className="flex min-h-screen">
               <AppSidebar />
