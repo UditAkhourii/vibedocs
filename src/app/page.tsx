@@ -126,13 +126,23 @@ export default function NewDocPage() {
   };
 
   const handleConnectGithub = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: `${window.location.origin}/`,
-        scopes: 'repo',
-      },
-    });
+    if (user) {
+      await supabase.auth.linkIdentity({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          scopes: 'repo',
+        },
+      });
+    } else {
+      await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          scopes: 'repo',
+        },
+      });
+    }
   };
 
   const filteredRepos = userRepos.filter(repo =>
