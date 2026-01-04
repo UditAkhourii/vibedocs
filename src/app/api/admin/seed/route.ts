@@ -11,7 +11,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const adminEmail = process.env.ADMIN_EMAIL || "udit@superdocs.cloud";
+        const adminEmail = process.env.ADMIN_EMAIL;
         if (email !== adminEmail) {
             return NextResponse.json({ error: "Invalid admin email" }, { status: 400 });
         }
